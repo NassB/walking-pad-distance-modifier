@@ -36,6 +36,7 @@ Chrome extension (Manifest V3) to load a Garmin-style walking activity JSON file
 - `npm run build` produces a production-ready extension in `/dist`.
 - `/dist/manifest.json` must exist at the root of the built extension output.
 - The ZIP package for distribution must contain the contents of `/dist` at archive root (not a parent `dist/` folder).
+- The current build script uses Unix shell commands and is intended for CI/Linux environments.
 
 ## Garmin-style JSON shape (example)
 
