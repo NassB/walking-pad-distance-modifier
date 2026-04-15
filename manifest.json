@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "walking-pad-distance-modifier",
+  "version": "0.1.0",
+  "description": "Load Garmin-style walking activity JSON, adjust total distance, and export updated JSON.",
+  "action": {
+    "default_title": "Walking Pad Distance Modifier",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  }
+}

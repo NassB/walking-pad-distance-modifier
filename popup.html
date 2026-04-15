@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walking Pad Distance Modifier</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Walking Pad Distance Modifier</h1>
+
+      <section id="drop-zone" class="drop-zone" aria-label="Drop JSON file here">
+        <p>Drop a Garmin-style .json file here</p>
+        <button id="pick-file-btn" type="button">Choose JSON File</button>
+        <input id="file-input" type="file" accept=".json,application/json" hidden />
+      </section>
+
+      <section id="status" class="status" aria-live="polite"></section>
+
+      <section id="summary" class="summary hidden">
+        <h2>Activity Summary</h2>
+        <dl>
+          <div><dt>Name / Sport</dt><dd id="summary-name">—</dd></div>
+          <div><dt>Start Time</dt><dd id="summary-start">—</dd></div>
+          <div><dt>Duration</dt><dd id="summary-duration">—</dd></div>
+          <div><dt>Total Distance</dt><dd id="summary-distance">—</dd></div>
+          <div><dt>Average Heart Rate</dt><dd id="summary-avg-hr">—</dd></div>
+          <div><dt>Max Heart Rate</dt><dd id="summary-max-hr">—</dd></div>
+        </dl>
+      </section>
+
+      <section id="controls" class="controls hidden">
+        <label for="target-distance">New distance (km)</label>
+        <input id="target-distance" type="number" min="0" step="0.001" placeholder="e.g. 5.000" />
+        <p class="distance-compare">
+          Original: <span id="original-distance">—</span> · New: <span id="new-distance">—</span>
+        </p>
+        <div class="buttons">
+          <button id="apply-btn" type="button">Apply Distance</button>
+          <button id="export-btn" type="button" disabled>Export Modified JSON</button>
+          <button id="reset-btn" type="button" class="secondary">Reset</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
