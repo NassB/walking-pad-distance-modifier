@@ -1,0 +1,22 @@
+{
+  "name": "walking-pad-distance-modifier",
+  "version": "1.0.0",
+  "description": "Chrome extension (Manifest V3) to load a Garmin-style walking activity JSON file, inspect key activity fields, modify distance values, and export an updated JSON file.",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && mkdir -p dist dist/assets dist/lib && cp manifest.json popup.html popup.css popup.js dist/ && cp -R assets/. dist/assets/ && cp -R lib/. dist/lib/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NassB/walking-pad-distance-modifier.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/NassB/walking-pad-distance-modifier/issues"
+  },
+  "homepage": "https://github.com/NassB/walking-pad-distance-modifier#readme",
+  "private": true
+}

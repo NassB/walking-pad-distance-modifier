@@ -30,6 +30,13 @@ Chrome extension (Manifest V3) to load a Garmin-style walking activity JSON file
 - `/assets/icon48.png`
 - `/assets/icon128.png`
 
+## Build contract (CI)
+
+- `npm ci` installs project dependencies from `package-lock.json`.
+- `npm run build` produces a production-ready extension in `/dist`.
+- `/dist/manifest.json` must exist at the root of the built extension output.
+- The ZIP package for distribution must contain the contents of `/dist` at archive root (not a parent `dist/` folder).
+
 ## Garmin-style JSON shape (example)
 
 The extension supports Garmin-like activity objects that include fields such as:
