@@ -45,7 +45,7 @@ jobs:
           (
             cd dist
             # Zip the dist contents directly so manifest.json is at archive root.
-            zip -r ../walking-pad-distance-modifier.zip . -x '*.DS_Store' '__MACOSX/*'
+            zip -r ../walking-pad-distance-modifier.zip . -x '*.DS_Store' -x '__MACOSX/*' -x '*/__MACOSX/*'
           )
 
       - name: Upload unpacked extension artifact
