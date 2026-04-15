@@ -1,0 +1,65 @@
+name: Build Chrome Extension
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-extension-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      EXTENSION_ZIP: walking-pad-distance-modifier.zip
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Validate build output
+        run: |
+          test -d dist || { echo 'dist/ folder is missing.'; exit 1; }
+          test -f dist/manifest.json || { echo 'dist/manifest.json is missing.'; exit 1; }
+
+      - name: Create extension ZIP package
+        run: |
+          rm -f "$EXTENSION_ZIP"
+          (
+            cd dist
+            # Zip the dist contents directly so manifest.json is at archive root.
+            zip -r "../$EXTENSION_ZIP" . -x '*.DS_Store' -x '*__MACOSX*'
+          )
+
+      - name: Upload unpacked extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unpacked-extension
+          path: dist
+          if-no-files-found: error
+
+      - name: Upload packaged extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged-extension
+          path: ${{ env.EXTENSION_ZIP }}
+          if-no-files-found: error
