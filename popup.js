@@ -81,7 +81,7 @@ function renderSummary() {
 
   ui.originalDistance.textContent = formatKm(summary.distanceMeters);
   ui.newDistance.textContent = formatKm(summary.distanceMeters);
-  ui.targetDistance.value = Number.isFinite(summary.distanceMeters)
+  ui.targetDistance.value = Number.isFinite(summary.distanceMeters) && summary.distanceMeters > 0
     ? metersToKm(summary.distanceMeters).toFixed(3)
     : "";
 
@@ -111,9 +111,6 @@ async function loadActivityFromFile(file) {
     }
 
     const summary = getActivitySummary(parsed);
-    if (!Number.isFinite(summary.distanceMeters) || summary.distanceMeters <= 0) {
-      throw new Error("Unsupported JSON format. Could not find a valid total distance.");
-    }
 
     state.originalFileName = file.name;
     state.originalJsonText = text;

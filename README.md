@@ -127,12 +127,22 @@ After applying the desired distance, select an export format from the dropdown a
 
 ## Manual test checklist (Chrome unpacked extension)
 
-1. Open `chrome://extensions`.
-2. Enable **Developer mode**.
-3. Click **Load unpacked**.
-4. Select the project root folder (for example: `/path/to/walking-pad-distance-modifier`).
-5. Open the extension popup.
-6. Load a Garmin-style `.json` file via drag-drop or **Choose JSON File**.
-7. Enter a new distance in km and click **Apply Distance**.
-8. Select each export format and click **Export Modified File**.
-9. Verify exported filenames end with `-modified.<ext>` where `<ext>` matches the selected format.
+### Getting a FIT-JSON input file from Garmin Connect
+
+1. Open [Garmin Connect](https://connect.garmin.com) and navigate to the activity you want to modify.
+2. Export the activity as a `.fit` file (Activity → ⋮ → Export Original).
+3. Go to **[https://fitfiletools.com/convert](https://fitfiletools.com/convert)**.
+4. Drop or upload the `.fit` file and click **Convert** to download the `.json` file.
+5. Use that `.json` file as the input for the extension.
+
+### Loading and modifying the activity
+
+6. Open `chrome://extensions`.
+7. Enable **Developer mode**.
+8. Click **Load unpacked**.
+9. Select the project root folder (for example: `/path/to/walking-pad-distance-modifier`).
+10. Open the extension popup.
+11. Load the `.json` file obtained above via drag-drop or **Choose JSON File**.
+12. Enter a new distance in km and click **Apply Distance**.
+13. Select each export format and click **Export Modified File**.
+14. Verify exported filenames end with `-modified.<ext>` where `<ext>` matches the selected format.
