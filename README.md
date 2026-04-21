@@ -38,10 +38,24 @@ Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files 
 - `/assets/icon48.png`
 - `/assets/icon128.png`
 
-## Build contract (CI)
+## Quick start
 
-- `npm ci` installs project dependencies from `package-lock.json`.
-- `npm run build` produces a production-ready extension in `/dist`.
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked**.
+4. Select the project root folder (for example: `/path/to/walking-pad-distance-modifier`).
+5. Open the extension popup.
+6. Load a Garmin-style `.json` file (drag-and-drop or **Choose JSON File**).
+7. Enter a new distance in km and click **Apply Distance**.
+8. Choose an export format (**JSON**, **TCX**, **GPX**, or **FIT**), then click **Export Modified File**.
+
+## Build and packaging
+
+- `npm ci` installs dependencies from `package-lock.json`.
+- `npm run build` creates a production-ready unpacked extension in `/dist`.
+
+### Build contract (CI)
+
 - `/dist/manifest.json` must exist at the root of the built extension output.
 - The ZIP package for distribution must contain the contents of `/dist` at archive root (not a parent `dist/` folder).
 - The current build script uses Unix shell commands and is intended for CI/Linux environments.
@@ -111,14 +125,14 @@ After applying the desired distance, select an export format from the dropdown a
 - Does not infer or regenerate GPS tracks.
 - Keeps JSON semantically intact, but formatting may differ from the original after export.
 
-## Manual test steps (Chrome unpacked extension)
+## Manual test checklist (Chrome unpacked extension)
 
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
 3. Click **Load unpacked**.
-4. Select the project folder:
-   `/home/runner/work/walking-pad-distance-modifier/walking-pad-distance-modifier`
+4. Select the project root folder (for example: `/path/to/walking-pad-distance-modifier`).
 5. Open the extension popup.
 6. Load a Garmin-style `.json` file via drag-drop or **Choose JSON File**.
 7. Enter a new distance in km and click **Apply Distance**.
-8. Click **Export Modified JSON** and verify output filename ends with `-modified.json`.
+8. Select each export format and click **Export Modified File**.
+9. Verify exported filenames end with `-modified.<ext>` where `<ext>` matches the selected format.
