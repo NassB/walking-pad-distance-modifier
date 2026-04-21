@@ -30,6 +30,7 @@ const ui = {
   targetDistance: document.getElementById("target-distance"),
   applyBtn: document.getElementById("apply-btn"),
   exportBtn: document.getElementById("export-btn"),
+  stravaBtn: document.getElementById("strava-btn"),
   exportFormat: document.getElementById("export-format"),
   resetBtn: document.getElementById("reset-btn"),
   summaryName: document.getElementById("summary-name"),
@@ -227,6 +228,9 @@ function init() {
 
   ui.applyBtn.addEventListener("click", applyDistance);
   ui.exportBtn.addEventListener("click", exportModifiedFile);
+  ui.stravaBtn.addEventListener("click", () => {
+    chrome.tabs.create({ url: "https://www.strava.com/upload/select" });
+  });
   ui.resetBtn.addEventListener("click", resetState);
 
   ui.targetDistance.addEventListener("input", () => {
