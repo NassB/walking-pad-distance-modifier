@@ -269,7 +269,7 @@ export function applyDistanceScaling(activity, newDistanceKm) {
     const unit = getFitDistanceUnit(activity);
     const originalDistanceValue = getFitOriginalDistanceKm(activity);
     if (!Number.isFinite(originalDistanceValue) || originalDistanceValue < 0) {
-      throw new Error("Could not find a valid original distance in the JSON file.");
+      throw new Error("Original distance must be a finite value greater than or equal to zero.");
     }
 
     const targetKm = Number(newDistanceKm);
