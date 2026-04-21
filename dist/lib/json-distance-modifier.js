@@ -123,9 +123,9 @@ function isFitJsonActivity(activity) {
 }
 
 function getFitOriginalDistanceKm(activity) {
-  const sessionDistanceKm = Number(getAtPath(activity, ["messages", "session", 0, "total_distance"]));
-  if (Number.isFinite(sessionDistanceKm)) {
-    return sessionDistanceKm;
+  const sessionDistanceValue = Number(getAtPath(activity, ["messages", "session", 0, "total_distance"]));
+  if (Number.isFinite(sessionDistanceValue)) {
+    return sessionDistanceValue;
   }
 
   const records = getAtPath(activity, FIT_RECORD_PATH);
@@ -133,17 +133,17 @@ function getFitOriginalDistanceKm(activity) {
     return undefined;
   }
 
-  let maxDistanceKm = undefined;
+  let maxDistanceValue = undefined;
   for (const record of records) {
-    const distanceKm = Number(record?.distance);
-    if (!Number.isFinite(distanceKm)) {
+    const distanceValue = Number(record?.distance);
+    if (!Number.isFinite(distanceValue)) {
       continue;
     }
-    if (!Number.isFinite(maxDistanceKm) || distanceKm > maxDistanceKm) {
-      maxDistanceKm = distanceKm;
+    if (!Number.isFinite(maxDistanceValue) || distanceValue > maxDistanceValue) {
+      maxDistanceValue = distanceValue;
     }
   }
-  return maxDistanceKm;
+  return maxDistanceValue;
 }
 
 function findRecordsContainer(activity) {
@@ -178,10 +178,10 @@ export function detectGarminActivity(activity) {
 export function getActivitySummary(activity) {
   if (isFitJsonActivity(activity)) {
     const session = getAtPath(activity, ["messages", "session", 0]);
-    const rawDistanceKm = getFitOriginalDistanceKm(activity);
+    const rawDistanceValue = getFitOriginalDistanceKm(activity);
     const unit = getFitDistanceUnit(activity);
-    const distanceMeters = Number.isFinite(rawDistanceKm)
-      ? (unit === "meters" ? rawDistanceKm : kmToMeters(rawDistanceKm))
+    const distanceMeters = Number.isFinite(rawDistanceValue)
+      ? (unit === "meters" ? rawDistanceValue : kmToMeters(rawDistanceValue))
       : undefined;
     const fitRecords = getAtPath(activity, FIT_RECORD_PATH);
     let heartRateSum = 0;
@@ -267,13 +267,13 @@ export function applyDistanceScaling(activity, newDistanceKm) {
   if (isFitJsonActivity(activity)) {
     const sessions = getAtPath(activity, FIT_SESSION_PATH);
     const unit = getFitDistanceUnit(activity);
-    const originalDistanceKm = getFitOriginalDistanceKm(activity);
-    if (!Number.isFinite(originalDistanceKm) || originalDistanceKm <= 0) {
+    const originalDistanceValue = getFitOriginalDistanceKm(activity);
+    if (!Number.isFinite(originalDistanceValue) || originalDistanceValue <= 0) {
       throw new Error("Could not find a valid original distance in the JSON file.");
     }
     // Normalise original distance to metres for the return value and scale calculation.
     const originalDistanceMeters =
-      unit === "meters" ? originalDistanceKm : kmToMeters(originalDistanceKm);
+      unit === "meters" ? originalDistanceValue : kmToMeters(originalDistanceValue);
 
     const targetKm = Number(newDistanceKm);
     if (!Number.isFinite(targetKm) || targetKm <= 0) {
