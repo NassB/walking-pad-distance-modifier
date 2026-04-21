@@ -20,6 +20,10 @@ const ROOT_START_PATHS = [["startTimeLocal"], ["startTimeGMT"], ["startTime"]];
 const ROOT_NAME_PATHS = [["activityName"], ["activityTypeDTO", "typeKey"], ["activityType", "typeKey"], ["sport"]];
 const ROOT_AVG_HR_PATHS = [["summaryDTO", "averageHR"], ["summaryDTO", "averageHeartRate"], ["averageHR"], ["averageHeartRate"]];
 const ROOT_MAX_HR_PATHS = [["summaryDTO", "maxHR"], ["summaryDTO", "maxHeartRate"], ["maxHR"], ["maxHeartRate"]];
+const FIT_MESSAGES_PATH = ["messages"];
+const FIT_SESSION_PATH = ["messages", "session"];
+const FIT_LAP_PATH = ["messages", "lap"];
+const FIT_RECORD_PATH = ["messages", "record"];
 
 export function metersToKm(value) {
   return Number(value) / METERS_PER_KM;
@@ -95,7 +99,23 @@ function firstFiniteNumber(obj, paths) {
   return undefined;
 }
 
+function isFitJsonActivity(activity) {
+  const messages = getAtPath(activity, FIT_MESSAGES_PATH);
+  if (!messages || typeof messages !== "object") {
+    return false;
+  }
+  return (
+    Array.isArray(getAtPath(activity, FIT_SESSION_PATH)) ||
+    Array.isArray(getAtPath(activity, FIT_RECORD_PATH)) ||
+    Array.isArray(messages.activity)
+  );
+}
+
 function findRecordsContainer(activity) {
+  const fitRecords = getAtPath(activity, FIT_RECORD_PATH);
+  if (Array.isArray(fitRecords)) {
+    return fitRecords;
+  }
   const candidates = ["activityDetailMetrics", "records", "samples", "laps", "waypoints"];
   for (const key of candidates) {
     if (Array.isArray(activity[key])) {
@@ -109,6 +129,9 @@ export function detectGarminActivity(activity) {
   if (!activity || typeof activity !== "object" || Array.isArray(activity)) {
     return false;
   }
+  if (isFitJsonActivity(activity)) {
+    return true;
+  }
   return (
     Boolean(activity.summaryDTO) ||
     Boolean(activity.activityTypeDTO) ||
@@ -118,6 +141,24 @@ export function detectGarminActivity(activity) {
 }
 
 export function getActivitySummary(activity) {
+  if (isFitJsonActivity(activity)) {
+    const session = getAtPath(activity, ["messages", "session", 0]);
+    const distanceKm = Number(session?.total_distance);
+    return {
+      nameOrSport:
+        session?.sport_profile_name ??
+        session?.sport?.label ??
+        session?.sub_sport?.label ??
+        "—",
+      startTime: session?.start_time ?? "—",
+      durationSeconds: Number.isFinite(Number(session?.total_elapsed_time))
+        ? Number(session.total_elapsed_time)
+        : Number(session?.total_timer_time),
+      distanceMeters: Number.isFinite(distanceKm) ? kmToMeters(distanceKm) : undefined,
+      averageHeartRate: Number(session?.avg_heart_rate),
+      maxHeartRate: Number(session?.max_heart_rate)
+    };
+  }
   const distanceMeters = firstFiniteNumber(activity, ROOT_DISTANCE_PATHS);
   return {
     nameOrSport: firstValue(activity, ROOT_NAME_PATHS) ?? "—",
@@ -148,6 +189,50 @@ function scaleRecordDistances(records, scale) {
 export function applyDistanceScaling(activity, newDistanceKm) {
   if (!detectGarminActivity(activity)) {
     throw new Error("Unsupported JSON format. Expected Garmin-style activity JSON.");
+  }
+
+  if (isFitJsonActivity(activity)) {
+    const sessions = getAtPath(activity, FIT_SESSION_PATH);
+    const session0DistanceKm = Number(sessions?.[0]?.total_distance);
+    if (!Number.isFinite(session0DistanceKm) || session0DistanceKm <= 0) {
+      throw new Error("Could not find a valid original distance in the JSON file.");
+    }
+
+    const targetKm = Number(newDistanceKm);
+    if (!Number.isFinite(targetKm) || targetKm <= 0) {
+      throw new Error("Target distance must be a positive number.");
+    }
+
+    const scale = targetKm / session0DistanceKm;
+    for (const session of sessions) {
+      if (session && typeof session === "object" && Number.isFinite(Number(session.total_distance))) {
+        session.total_distance = Number(session.total_distance) * scale;
+      }
+    }
+
+    const laps = getAtPath(activity, FIT_LAP_PATH);
+    if (Array.isArray(laps)) {
+      for (const lap of laps) {
+        if (lap && typeof lap === "object" && Number.isFinite(Number(lap.total_distance))) {
+          lap.total_distance = Number(lap.total_distance) * scale;
+        }
+      }
+    }
+
+    const records = getAtPath(activity, FIT_RECORD_PATH);
+    if (Array.isArray(records)) {
+      for (const record of records) {
+        if (record && typeof record === "object" && Number.isFinite(Number(record.distance))) {
+          record.distance = Number(record.distance) * scale;
+        }
+      }
+    }
+
+    return {
+      originalDistanceMeters: kmToMeters(session0DistanceKm),
+      newDistanceMeters: kmToMeters(targetKm),
+      scale
+    };
   }
 
   const originalDistanceMeters = firstFiniteNumber(activity, ROOT_DISTANCE_PATHS);

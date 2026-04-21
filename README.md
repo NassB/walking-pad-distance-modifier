@@ -1,6 +1,6 @@
 # walking-pad-distance-modifier
 
-Chrome extension (Manifest V3) to load a Garmin-style walking activity JSON file, inspect key activity fields, modify distance values, and export an updated JSON file.
+Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files (including FIT converted to JSON), inspect key activity fields, modify distance values, and export an updated JSON file.
 
 ## Features
 
@@ -38,7 +38,7 @@ Chrome extension (Manifest V3) to load a Garmin-style walking activity JSON file
 - The ZIP package for distribution must contain the contents of `/dist` at archive root (not a parent `dist/` folder).
 - The current build script uses Unix shell commands and is intended for CI/Linux environments.
 
-## Garmin-style JSON shape (example)
+## Supported JSON shapes (examples)
 
 The extension supports Garmin-like activity objects that include fields such as:
 
@@ -62,12 +62,26 @@ The extension supports Garmin-like activity objects that include fields such as:
 
 Distance values are expected in meters. Indoor walking JSON may not contain GPS coordinates, and that is supported.
 
+It also supports FIT files converted to JSON with a `messages` root structure:
+
+```json
+{
+  "messages": {
+    "session": [{ "start_time": "2026-04-14T20:00:31Z", "total_distance": 0.37, "sport": { "label": "Walking" } }],
+    "lap": [{ "total_distance": 0.12 }],
+    "record": [{ "timestamp": "2026-04-14T20:00:32Z", "distance": 0.001 }]
+  }
+}
+```
+
+In this FIT-JSON shape, distance values are in kilometers for `messages.session[*].total_distance`, `messages.lap[*].total_distance`, and `messages.record[*].distance`.
+
 ## How distance recalculation works
 
-1. Read original total distance from known Garmin-like fields.
-2. Compute `scale = newDistanceMeters / originalDistanceMeters`.
-3. Multiply recognized top-level distance fields by `scale`.
-4. Multiply record-level numeric fields whose key contains `distance` by `scale`.
+1. Read original total distance from known summary fields.
+2. Compute a proportional scaling factor from the target distance.
+3. For Garmin-like JSON, scale recognized top-level distance fields and record-level numeric `*distance*` fields.
+4. For FIT-JSON, scale `messages.session[*].total_distance`, `messages.lap[*].total_distance`, and `messages.record[*].distance`.
 5. Keep all unrelated fields unchanged.
 
 ## Current limitations
