@@ -36,9 +36,18 @@
         <p class="distance-compare">
           Original: <span id="original-distance">—</span> · New: <span id="new-distance">—</span>
         </p>
+        <div class="format-row">
+          <label for="export-format">Export format</label>
+          <select id="export-format">
+            <option value="json">JSON</option>
+            <option value="tcx">TCX (Strava recommended)</option>
+            <option value="gpx">GPX</option>
+            <option value="fit">FIT</option>
+          </select>
+        </div>
         <div class="buttons">
           <button id="apply-btn" type="button">Apply Distance</button>
-          <button id="export-btn" type="button" disabled>Export Modified JSON</button>
+          <button id="export-btn" type="button" disabled>Export Modified File</button>
           <button id="reset-btn" type="button" class="secondary">Reset</button>
         </div>
       </section>

@@ -1,6 +1,6 @@
 # walking-pad-distance-modifier
 
-Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files (including FIT converted to JSON), inspect key activity fields, modify distance values, and export an updated JSON file.
+Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files (including FIT converted to JSON), inspect key activity fields, modify distance values, and export an updated file for Strava import.
 
 ## Features
 
@@ -15,8 +15,12 @@ Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files 
   - average heart rate
   - max heart rate
 - Distance modification via a target value in kilometers
-- Proportional distance recalculation for known top-level distance fields and record-level `*distance*` numeric fields
-- Export updated file as `<original-name>-modified.json`
+- Proportional distance recalculation for all distance fields (session, laps, records)
+- Export the modified activity in four formats, selectable via a dropdown:
+  - **JSON** — original format with distances patched in-place
+  - **TCX** — Garmin Training Center XML; recommended for Strava with heart-rate data
+  - **GPX** — GPS Exchange Format with heart-rate extensions; for indoor activities coordinates default to 0,0
+  - **FIT** — Garmin FIT binary; includes file_id, records, laps, session, and activity messages
 - Reset button to clear current state
 
 ## Project structure
@@ -25,7 +29,11 @@ Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files 
 - `/popup.html`
 - `/popup.css`
 - `/popup.js`
-- `/lib/json-distance-modifier.js`
+- `/lib/json-distance-modifier.js` — Garmin JSON detection, summary extraction, distance scaling
+- `/lib/activity-normalizer.js` — normalizes both JSON formats into a common intermediate form
+- `/lib/tcx-exporter.js` — converts normalized activity to TCX XML
+- `/lib/gpx-exporter.js` — converts normalized activity to GPX XML with heart-rate extensions
+- `/lib/fit-exporter.js` — encodes normalized activity to FIT binary (file_id + records + laps + session + activity)
 - `/assets/icon16.png`
 - `/assets/icon48.png`
 - `/assets/icon128.png`
@@ -84,10 +92,22 @@ In this FIT-JSON shape, distance values are in kilometers for `messages.session[
 4. For FIT-JSON, scale `messages.session[*].total_distance`, `messages.lap[*].total_distance`, and `messages.record[*].distance`.
 5. Keep all unrelated fields unchanged.
 
+## Export formats for Strava
+
+After applying the desired distance, select an export format from the dropdown and click **Export Modified File**:
+
+| Format | File | Notes |
+|--------|------|-------|
+| JSON | `.json` | Patched activity in original format; useful for re-processing. |
+| TCX | `.tcx` | Garmin Training Center XML. **Best for Strava** — preserves laps, heart-rate, and timing. |
+| GPX | `.gpx` | GPS Exchange Format with Garmin heart-rate extensions (`gpxtpx:hr`). Indoor activities export with lat=0, lon=0 (no GPS map in Strava). |
+| FIT | `.fit` | Garmin FIT binary. Contains `file_id`, per-second `record` messages, `lap`, `session`, and `activity` messages with correct CRC. |
+
 ## Current limitations
 
 - Supports common Garmin-style field names, not every possible export variant.
 - Record-level scaling is key-name based (`distance` substring) and numeric-only.
+- GPX exports for indoor activities use lat=0, lon=0 placeholder coordinates (no real GPS).
 - Does not infer or regenerate GPS tracks.
 - Keeps JSON semantically intact, but formatting may differ from the original after export.
 

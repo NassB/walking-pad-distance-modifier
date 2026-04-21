@@ -125,6 +125,29 @@ button:disabled {
   flex-wrap: wrap;
 }
 
+.format-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.format-row label {
+  display: inline;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.format-row select {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #fff;
+}
+
 .hidden {
   display: none;
 }

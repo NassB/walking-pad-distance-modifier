@@ -7,6 +7,10 @@ import {
   kmToMeters,
   metersToKm
 } from "./lib/json-distance-modifier.js";
+import { normalizeActivity } from "./lib/activity-normalizer.js";
+import { activityToTcx } from "./lib/tcx-exporter.js";
+import { activityToGpx } from "./lib/gpx-exporter.js";
+import { activityToFit } from "./lib/fit-exporter.js";
 
 const state = {
   originalFileName: "activity.json",
@@ -26,6 +30,7 @@ const ui = {
   targetDistance: document.getElementById("target-distance"),
   applyBtn: document.getElementById("apply-btn"),
   exportBtn: document.getElementById("export-btn"),
+  exportFormat: document.getElementById("export-format"),
   resetBtn: document.getElementById("reset-btn"),
   summaryName: document.getElementById("summary-name"),
   summaryStart: document.getElementById("summary-start"),
@@ -151,27 +156,50 @@ function applyDistance() {
   }
 }
 
-function makeExportFileName(originalName) {
+function makeExportFileName(originalName, ext = "json") {
   const lower = originalName.toLowerCase();
-  if (lower.endsWith(".json")) {
-    return `${originalName.slice(0, -5)}-modified.json`;
-  }
-  return `${originalName}-modified.json`;
+  const base = lower.endsWith(".json") ? originalName.slice(0, -5) : originalName;
+  return `${base}-modified.${ext}`;
 }
 
-function exportModifiedJson() {
+function exportModifiedFile() {
   if (!state.modifiedActivity) {
     setStatus("No modified JSON available yet.", "error");
     return;
   }
 
-  const blob = new Blob([JSON.stringify(state.modifiedActivity, null, 2)], {
-    type: "application/json"
-  });
+  const format = ui.exportFormat?.value ?? "json";
+  let blob;
+  let ext;
+
+  try {
+    if (format === "tcx") {
+      const xml = activityToTcx(normalizeActivity(state.modifiedActivity));
+      blob = new Blob([xml], { type: "application/vnd.garmin.tcx+xml" });
+      ext = "tcx";
+    } else if (format === "gpx") {
+      const xml = activityToGpx(normalizeActivity(state.modifiedActivity));
+      blob = new Blob([xml], { type: "application/gpx+xml" });
+      ext = "gpx";
+    } else if (format === "fit") {
+      const bytes = activityToFit(normalizeActivity(state.modifiedActivity));
+      blob = new Blob([bytes], { type: "application/octet-stream" });
+      ext = "fit";
+    } else {
+      blob = new Blob([JSON.stringify(state.modifiedActivity, null, 2)], {
+        type: "application/json"
+      });
+      ext = "json";
+    }
+  } catch (error) {
+    setStatus(error.message || "Failed to convert activity.", "error");
+    return;
+  }
+
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = makeExportFileName(state.originalFileName);
+  anchor.download = makeExportFileName(state.originalFileName, ext);
   anchor.click();
   URL.revokeObjectURL(url);
   setStatus(`Exported ${anchor.download}.`, "success");
@@ -201,7 +229,7 @@ function init() {
   ui.dropZone.addEventListener("drop", handleDrop);
 
   ui.applyBtn.addEventListener("click", applyDistance);
-  ui.exportBtn.addEventListener("click", exportModifiedJson);
+  ui.exportBtn.addEventListener("click", exportModifiedFile);
   ui.resetBtn.addEventListener("click", resetState);
 
   ui.targetDistance.addEventListener("input", () => {
