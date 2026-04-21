@@ -20,14 +20,32 @@ function finiteNum(value) {
   return Number.isFinite(n) ? n : undefined;
 }
 
+/**
+ * Returns "meters" when the activity's units section explicitly declares
+ * distances in metres (Variante B), or "kilometers" otherwise (Variante A:
+ * no units section present).
+ */
+function getFitDistanceUnit(activity) {
+  const declared = activity?.units?.session?.total_distance;
+  if (declared === "m") return "meters";
+  return "kilometers";
+}
+
 function normalizeFitJson(activity) {
   const sessions = activity.messages.session ?? [];
   const laps = activity.messages.lap ?? [];
   const records = activity.messages.record ?? [];
   const s = sessions[0] ?? {};
 
+  const unit = getFitDistanceUnit(activity);
+  function toMeters(v) {
+    const n = finiteNum(v);
+    if (n == null) return 0;
+    return unit === "meters" ? n : n * KM_TO_M;
+  }
+
   const startTime = parseIso(s.start_time);
-  const totalDistanceMeters = (finiteNum(s.total_distance) ?? 0) * KM_TO_M;
+  const totalDistanceMeters = toMeters(s.total_distance);
   const durationSeconds =
     finiteNum(s.total_elapsed_time) ?? finiteNum(s.total_timer_time) ?? 0;
   const sport =
@@ -35,7 +53,7 @@ function normalizeFitJson(activity) {
 
   const normalLaps = laps.map((lap) => ({
     startTime: parseIso(lap.start_time),
-    distanceMeters: (finiteNum(lap.total_distance) ?? 0) * KM_TO_M,
+    distanceMeters: toMeters(lap.total_distance),
     durationSeconds:
       finiteNum(lap.total_elapsed_time) ?? finiteNum(lap.total_timer_time) ?? 0,
     avgHeartRate: finiteNum(lap.avg_heart_rate),
@@ -49,7 +67,7 @@ function normalizeFitJson(activity) {
     const cadFrac = finiteNum(r.fractional_cadence) ?? 0;
     return {
       timestamp: parseIso(r.timestamp),
-      distanceMeters: (finiteNum(r.distance) ?? 0) * KM_TO_M,
+      distanceMeters: toMeters(r.distance),
       heartRate: finiteNum(r.heart_rate),
       speed: finiteNum(r.enhanced_speed ?? r.speed),
       cadence: cadBase != null ? Math.round(cadBase + cadFrac) : undefined

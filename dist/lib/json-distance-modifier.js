@@ -99,6 +99,17 @@ function firstFiniteNumber(obj, paths) {
   return undefined;
 }
 
+/**
+ * Returns "meters" when the activity's units section explicitly declares
+ * distances in metres (Variante B), or "kilometers" otherwise (Variante A:
+ * no units section present, or units section absent/different).
+ */
+function getFitDistanceUnit(activity) {
+  const declared = activity?.units?.session?.total_distance;
+  if (declared === "m") return "meters";
+  return "kilometers";
+}
+
 function isFitJsonActivity(activity) {
   const messages = getAtPath(activity, FIT_MESSAGES_PATH);
   if (!messages || typeof messages !== "object") {
@@ -143,7 +154,11 @@ export function detectGarminActivity(activity) {
 export function getActivitySummary(activity) {
   if (isFitJsonActivity(activity)) {
     const session = getAtPath(activity, ["messages", "session", 0]);
-    const distanceKm = Number(session?.total_distance);
+    const rawDistance = Number(session?.total_distance);
+    const unit = getFitDistanceUnit(activity);
+    const distanceMeters = Number.isFinite(rawDistance)
+      ? (unit === "meters" ? rawDistance : kmToMeters(rawDistance))
+      : undefined;
     return {
       nameOrSport:
         session?.sport_profile_name ??
@@ -154,7 +169,7 @@ export function getActivitySummary(activity) {
       durationSeconds: Number.isFinite(Number(session?.total_elapsed_time))
         ? Number(session.total_elapsed_time)
         : Number(session?.total_timer_time),
-      distanceMeters: Number.isFinite(distanceKm) ? kmToMeters(distanceKm) : undefined,
+      distanceMeters,
       averageHeartRate: Number(session?.avg_heart_rate),
       maxHeartRate: Number(session?.max_heart_rate)
     };
@@ -193,17 +208,24 @@ export function applyDistanceScaling(activity, newDistanceKm) {
 
   if (isFitJsonActivity(activity)) {
     const sessions = getAtPath(activity, FIT_SESSION_PATH);
-    const session0DistanceKm = Number(sessions?.[0]?.total_distance);
-    if (!Number.isFinite(session0DistanceKm) || session0DistanceKm <= 0) {
+    const unit = getFitDistanceUnit(activity);
+    const rawOriginal = Number(sessions?.[0]?.total_distance);
+    if (!Number.isFinite(rawOriginal) || rawOriginal <= 0) {
       throw new Error("Could not find a valid original distance in the JSON file.");
     }
+    // Normalise original distance to metres for the return value and scale calculation.
+    const originalDistanceMeters =
+      unit === "meters" ? rawOriginal : kmToMeters(rawOriginal);
 
     const targetKm = Number(newDistanceKm);
     if (!Number.isFinite(targetKm) || targetKm <= 0) {
       throw new Error("Target distance must be a positive number.");
     }
+    const newDistanceMeters = kmToMeters(targetKm);
+    // Scale is a dimensionless ratio and is correct regardless of whether the
+    // stored values are in km or m (both numerator and denominator are in metres).
+    const scale = newDistanceMeters / originalDistanceMeters;
 
-    const scale = targetKm / session0DistanceKm;
     for (const session of sessions) {
       if (session && typeof session === "object" && Number.isFinite(Number(session.total_distance))) {
         session.total_distance = Number(session.total_distance) * scale;
@@ -229,8 +251,8 @@ export function applyDistanceScaling(activity, newDistanceKm) {
     }
 
     return {
-      originalDistanceMeters: kmToMeters(session0DistanceKm),
-      newDistanceMeters: kmToMeters(targetKm),
+      originalDistanceMeters,
+      newDistanceMeters,
       scale
     };
   }
