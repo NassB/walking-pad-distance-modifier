@@ -44,6 +44,8 @@ function normalizeFitJson(activity) {
 
   const normalRecords = records.map((r) => {
     const cadBase = finiteNum(r.cadence);
+    // fractional_cadence is additive sub-step precision; default to 0 when absent so the
+    // integer cadence value is used directly without truncation.
     const cadFrac = finiteNum(r.fractional_cadence) ?? 0;
     return {
       timestamp: parseIso(r.timestamp),
