@@ -11,5 +11,16 @@
     "16": "assets/icon16.png",
     "48": "assets/icon48.png",
     "128": "assets/icon128.png"
-  }
+  },
+  "host_permissions": [
+    "https://connect.garmin.com/app/activity/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://connect.garmin.com/app/activity/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
 }

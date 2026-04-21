@@ -4,7 +4,8 @@ Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files 
 
 ## Features
 
-- Popup-only Chrome extension (client-side, no backend)
+- Chrome extension (client-side, no backend)
+- **Garmin activity page hint** — when you open any activity page on Garmin Connect (`connect.garmin.com/app/activity/*`), a dismissible banner automatically appears with step-by-step instructions to download the activity and export it to Strava using this extension
 - Drag-and-drop and file picker support for `.json`
 - Garmin-style JSON detection with clear validation errors for unsupported formats
 - Activity summary display when available:
@@ -29,6 +30,8 @@ Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files 
 - `/popup.html`
 - `/popup.css`
 - `/popup.js`
+- `/content.js` — content script injected on Garmin Connect activity pages to show a hint banner
+- `/content.css` — styles for the hint banner
 - `/lib/json-distance-modifier.js` — Garmin JSON detection, summary extraction, distance scaling
 - `/lib/activity-normalizer.js` — normalizes both JSON formats into a common intermediate form
 - `/lib/tcx-exporter.js` — converts normalized activity to TCX XML

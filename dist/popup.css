@@ -51,6 +51,11 @@ button.secondary {
   background: #64748b;
 }
 
+button.strava {
+  border-color: #e34402;
+  background: #fc4c02;
+}
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
