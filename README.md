@@ -43,8 +43,7 @@ Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files 
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
 3. Click **Load unpacked**.
-4. Select the project folder:
-   `/home/runner/work/walking-pad-distance-modifier/walking-pad-distance-modifier`
+4. Select the project root folder (for example: `/path/to/walking-pad-distance-modifier`).
 5. Open the extension popup.
 6. Load a Garmin-style `.json` file (drag-and-drop or **Choose JSON File**).
 7. Enter a new distance in km and click **Apply Distance**.
@@ -131,8 +130,7 @@ After applying the desired distance, select an export format from the dropdown a
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
 3. Click **Load unpacked**.
-4. Select the project folder:
-   `/home/runner/work/walking-pad-distance-modifier/walking-pad-distance-modifier`
+4. Select the project root folder (for example: `/path/to/walking-pad-distance-modifier`).
 5. Open the extension popup.
 6. Load a Garmin-style `.json` file via drag-drop or **Choose JSON File**.
 7. Enter a new distance in km and click **Apply Distance**.
