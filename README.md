@@ -146,3 +146,9 @@ After applying the desired distance, select an export format from the dropdown a
 12. Enter a new distance in km and click **Apply Distance**.
 13. Select each export format and click **Export Modified File**.
 14. Verify exported filenames end with `-modified.<ext>` where `<ext>` matches the selected format.
+
+### Screeshots
+
+<img width="732" height="416" alt="image" src="https://github.com/user-attachments/assets/32dc2e5e-e4ef-490c-ac9c-da5646c3c744" />
+<img width="770" height="1284" alt="image" src="https://github.com/user-attachments/assets/f3767a20-9ec6-4bf7-a2e9-ae1aea08095a" />
+
