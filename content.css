@@ -1,0 +1,78 @@
+#wpdm-garmin-hint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* max z-index to always appear above Garmin Connect's UI */
+  z-index: 2147483647;
+  background: #1e3a5f;
+  color: #f0f6ff;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+#wpdm-garmin-hint .wpdm-hint-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+#wpdm-garmin-hint .wpdm-hint-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+#wpdm-garmin-hint .wpdm-hint-text {
+  flex: 1;
+}
+
+#wpdm-garmin-hint .wpdm-hint-text strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 13px;
+  color: #93c5fd;
+}
+
+#wpdm-garmin-hint .wpdm-hint-text p {
+  margin: 0;
+  line-height: 1.5;
+  color: #e2eaf5;
+}
+
+#wpdm-garmin-hint .wpdm-hint-text code {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 12px;
+}
+
+#wpdm-garmin-hint .wpdm-hint-text a {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+#wpdm-garmin-hint .wpdm-hint-text a:hover {
+  color: #bfdbfe;
+}
+
+#wpdm-garmin-hint .wpdm-hint-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: #93c5fd;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  align-self: center;
+}
+
+#wpdm-garmin-hint .wpdm-hint-close:hover {
+  color: #ffffff;
+}

@@ -4,7 +4,7 @@
   "description": "Chrome extension (Manifest V3) to load a Garmin-style walking activity JSON file, inspect key activity fields, modify distance values, and export an updated JSON file.",
   "scripts": {
     "clean": "rm -rf dist",
-    "copy:root": "cp manifest.json popup.html popup.css popup.js dist/",
+    "copy:root": "cp manifest.json popup.html popup.css popup.js content.js content.css dist/",
     "copy:assets": "cp -R assets/. dist/assets/",
     "copy:lib": "cp -R lib/. dist/lib/",
     "build": "npm run clean && mkdir -p dist dist/assets dist/lib && npm run copy:root && npm run copy:assets && npm run copy:lib"
