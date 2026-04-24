@@ -130,7 +130,8 @@ button:disabled {
   flex-wrap: wrap;
 }
 
-.format-row {
+.format-row,
+.options-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -138,19 +139,32 @@ button:disabled {
   font-size: 12px;
 }
 
-.format-row label {
+.format-row label,
+.options-row label {
   display: inline;
   margin: 0;
   white-space: nowrap;
 }
 
-.format-row select {
+.format-row select,
+.options-row input[type="number"] {
   flex: 1;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 12px;
   background: #fff;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  width: auto !important;
 }
 
 .hidden {

@@ -40,7 +40,9 @@ const ui = {
   summaryAvgHr: document.getElementById("summary-avg-hr"),
   summaryMaxHr: document.getElementById("summary-max-hr"),
   originalDistance: document.getElementById("original-distance"),
-  newDistance: document.getElementById("new-distance")
+  newDistance: document.getElementById("new-distance"),
+  constantPace: document.getElementById("constant-pace"),
+  slope: document.getElementById("slope")
 };
 
 function setStatus(message, type = "") {
@@ -60,6 +62,8 @@ function resetState() {
   ui.exportBtn.disabled = true;
   ui.stravaBtn.disabled = true;
   ui.targetDistance.value = "";
+  ui.constantPace.checked = false;
+  ui.slope.value = "0";
   ui.originalDistance.textContent = "—";
   ui.newDistance.textContent = "—";
   setStatus("", "");
@@ -142,9 +146,14 @@ function applyDistance() {
     return;
   }
 
+  const options = {
+    constantPace: ui.constantPace.checked,
+    slope: Number(ui.slope.value) || 0
+  };
+
   try {
     const cloned = cloneActivity(state.parsedActivity);
-    const { newDistanceMeters } = applyDistanceScaling(cloned, targetDistanceKm);
+    const { newDistanceMeters } = applyDistanceScaling(cloned, targetDistanceKm, options);
     state.modifiedActivity = cloned;
 
     ui.newDistance.textContent = formatKm(newDistanceMeters);
