@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" width="112" height="112" alt="" />
+  <img src="assets/icon128.png" width="112" height="112" alt="Walking Pad Distance Modifier" />
 </p>
 
 <h1 align="center">Walking Pad Distance Modifier</h1>
