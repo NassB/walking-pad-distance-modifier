@@ -101,6 +101,10 @@ It also supports FIT files converted to JSON with a `messages` root structure:
 
 In this FIT-JSON shape, distance values are in kilometers for `messages.session[*].total_distance`, `messages.lap[*].total_distance`, and `messages.record[*].distance`.
 
+### Privacy when converting FIT files
+
+The FIT-to-JSON instructions use the third-party service fitfiletools.com. Uploading a FIT file shares the activity data in that file, which may include health information, with that service. Use it only if you trust the service; the extension itself processes the JSON locally.
+
 ## How distance recalculation works
 
 1. Read original total distance from known summary fields.
@@ -134,7 +138,7 @@ After applying the desired distance, select an export format from the dropdown a
 
 1. Open [Garmin Connect](https://connect.garmin.com) and navigate to the activity you want to modify.
 2. Export the activity as a `.fit` file (Activity → ⋮ → Export Original).
-3. Go to **[https://fitfiletools.com/convert](https://fitfiletools.com/convert)**.
+3. If you are comfortable sharing the activity file with a third-party service, go to **[https://fitfiletools.com/convert](https://fitfiletools.com/convert)**.
 4. Drop or upload the `.fit` file and click **Convert** to download the `.json` file.
 5. Use that `.json` file as the input for the extension.
 

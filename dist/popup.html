@@ -45,6 +45,18 @@
             <option value="fit">FIT</option>
           </select>
         </div>
+
+        <div class="options-row">
+          <label class="checkbox-label">
+            <input id="constant-pace" type="checkbox" />
+            Constant pace & cadence
+          </label>
+        </div>
+
+        <div class="options-row">
+          <label for="slope">Slope (%)</label>
+          <input id="slope" type="number" step="0.5" value="0" placeholder="e.g. 5.0" />
+        </div>
         <div class="buttons">
           <button id="apply-btn" type="button">Apply Distance</button>
           <button id="export-btn" type="button" disabled>Export Modified File</button>

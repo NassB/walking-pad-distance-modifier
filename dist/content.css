@@ -3,6 +3,7 @@
   top: 0;
   left: 0;
   right: 0;
+  /* max z-index to always appear above Garmin Connect's UI */
   z-index: 2147483647;
   background: #1e3a5f;
   color: #f0f6ff;

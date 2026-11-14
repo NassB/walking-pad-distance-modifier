@@ -40,7 +40,9 @@ const ui = {
   summaryAvgHr: document.getElementById("summary-avg-hr"),
   summaryMaxHr: document.getElementById("summary-max-hr"),
   originalDistance: document.getElementById("original-distance"),
-  newDistance: document.getElementById("new-distance")
+  newDistance: document.getElementById("new-distance"),
+  constantPace: document.getElementById("constant-pace"),
+  slope: document.getElementById("slope")
 };
 
 function setStatus(message, type = "") {
@@ -58,7 +60,10 @@ function resetState() {
   ui.summary.classList.add("hidden");
   ui.controls.classList.add("hidden");
   ui.exportBtn.disabled = true;
+  ui.stravaBtn.disabled = true;
   ui.targetDistance.value = "";
+  ui.constantPace.checked = false;
+  ui.slope.value = "0";
   ui.originalDistance.textContent = "—";
   ui.newDistance.textContent = "—";
   setStatus("", "");
@@ -121,6 +126,7 @@ async function loadActivityFromFile(file) {
 
     renderSummary();
     ui.exportBtn.disabled = true;
+    ui.stravaBtn.disabled = true;
     setStatus("File loaded. Enter a new distance and click Apply Distance.", "success");
   } catch (error) {
     resetState();
@@ -140,16 +146,23 @@ function applyDistance() {
     return;
   }
 
+  const options = {
+    constantPace: ui.constantPace.checked,
+    slope: Number(ui.slope.value) || 0
+  };
+
   try {
     const cloned = cloneActivity(state.parsedActivity);
-    const { newDistanceMeters } = applyDistanceScaling(cloned, targetDistanceKm);
+    const { newDistanceMeters } = applyDistanceScaling(cloned, targetDistanceKm, options);
     state.modifiedActivity = cloned;
 
     ui.newDistance.textContent = formatKm(newDistanceMeters);
     ui.exportBtn.disabled = false;
+    ui.stravaBtn.disabled = false;
     setStatus("Distance updated. You can now export the modified JSON.", "success");
   } catch (error) {
     ui.exportBtn.disabled = true;
+    ui.stravaBtn.disabled = true;
     setStatus(error.message || "Failed to update distance.", "error");
   }
 }

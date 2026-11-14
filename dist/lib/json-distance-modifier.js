@@ -243,23 +243,95 @@ export function getActivitySummary(activity) {
   };
 }
 
-function scaleRecordDistances(records, scale) {
-  if (!Array.isArray(records)) {
+function processRecords(records, scale, options = {}) {
+  if (!Array.isArray(records) || records.length === 0) {
     return;
   }
+
+  const { constantPace, slope } = options;
+
+  let avgCadence = undefined;
+  if (constantPace) {
+    let cadSum = 0;
+    let cadCount = 0;
+    for (const r of records) {
+      const cadValue = Number(r.cadence);
+      if (Number.isFinite(cadValue)) {
+        cadSum += cadValue;
+        cadCount++;
+      }
+    }
+    if (cadCount > 0) {
+      avgCadence = cadSum / cadCount;
+    }
+  }
+
+  const getTs = (r) => {
+    const val = r.timestamp || r.startTime || r.time || r.start_time;
+    return val ? new Date(val).getTime() : null;
+  };
+
+  const startTime = getTs(records[0]);
+  const lastRecord = records[records.length - 1];
+  const endTime = getTs(lastRecord);
+  const totalDurationMs = startTime !== null && endTime !== null ? endTime - startTime : 0;
+
+  // Find the primary distance key
+  const distanceKey = Object.keys(lastRecord).find((k) => /distance/i.test(k) && typeof lastRecord[k] === "number") || "distance";
+  const originalTotalDistance = Number(lastRecord[distanceKey]) || 0;
+  const newTotalDistance = originalTotalDistance * scale;
+
   for (const record of records) {
     if (!record || typeof record !== "object") {
       continue;
     }
-    for (const [key, value] of Object.entries(record)) {
-      if (typeof value === "number" && /distance/i.test(key)) {
-        record[key] = value * scale;
+
+    const currentTime = getTs(record);
+    const elapsedMs = startTime !== null && currentTime !== null ? currentTime - startTime : 0;
+
+    if (constantPace && totalDurationMs > 0) {
+      const newDist = (elapsedMs / totalDurationMs) * newTotalDistance;
+      // Update all distance-related fields to the same value
+      for (const key of Object.keys(record)) {
+        if (/distance/i.test(key) && typeof record[key] === "number") {
+          record[key] = newDist;
+        }
+      }
+      // Update speed
+      const avgSpeed = newTotalDistance / (totalDurationMs / 1000);
+      if ("speed" in record) record.speed = avgSpeed;
+      if ("enhanced_speed" in record) record.enhanced_speed = avgSpeed;
+      if ("directSpeed" in record) record.directSpeed = avgSpeed;
+    } else {
+      // Normal scaling
+      for (const key of Object.keys(record)) {
+        if (typeof record[key] === "number") {
+          if (/distance/i.test(key) || /altitude/i.test(key) || /elevation/i.test(key)) {
+            record[key] *= scale;
+          }
+        }
       }
     }
+
+    if (constantPace && avgCadence !== undefined) {
+      if ("cadence" in record) record.cadence = avgCadence;
+    }
+
+    if (slope && slope !== 0) {
+      const currentDist = Number(record[distanceKey]) || 0;
+      const alt = (currentDist * slope) / 100;
+      record.altitude = alt;
+      if ("enhanced_altitude" in record) record.enhanced_altitude = alt;
+    }
   }
+
+  return {
+    avgCadence,
+    avgSpeed: newTotalDistance / (totalDurationMs / 1000)
+  };
 }
 
-export function applyDistanceScaling(activity, newDistanceKm) {
+export function applyDistanceScaling(activity, newDistanceKm, options = {}) {
   if (!detectGarminActivity(activity)) {
     throw new Error("Unsupported JSON format. Expected Garmin-style activity JSON.");
   }
@@ -314,6 +386,35 @@ export function applyDistanceScaling(activity, newDistanceKm) {
             }
           }
         }
+        // Handle slope and cadence for records even if original distance was 0
+        const { avgCadence, avgSpeed } = processRecords(records, 1, options);
+
+        if (options.constantPace) {
+          const laps = getAtPath(activity, FIT_LAP_PATH);
+          for (const s of [...(sessions || []), ...(laps || [])]) {
+            if (avgCadence !== undefined) {
+              s.avg_cadence = avgCadence;
+              s.max_cadence = avgCadence;
+            }
+            if (Number.isFinite(avgSpeed)) {
+              s.avg_speed = avgSpeed;
+              s.max_speed = avgSpeed;
+              s.enhanced_avg_speed = avgSpeed;
+              s.enhanced_max_speed = avgSpeed;
+            }
+          }
+        }
+      }
+
+      if (options.slope && options.slope !== 0) {
+        const ascent = (newDistanceMeters * options.slope) / 100;
+        const targetSummaries = [...(sessions || []), ...(getAtPath(activity, FIT_LAP_PATH) || [])];
+        for (const s of targetSummaries) {
+          if (s) {
+            s.total_ascent = ascent;
+            s.total_descent = 0;
+          }
+        }
       }
 
       return {
@@ -349,9 +450,40 @@ export function applyDistanceScaling(activity, newDistanceKm) {
 
     const records = getAtPath(activity, FIT_RECORD_PATH);
     if (Array.isArray(records)) {
-      for (const record of records) {
-        if (record && typeof record === "object" && Number.isFinite(Number(record.distance))) {
-          record.distance = Number(record.distance) * scale;
+      const { avgCadence, avgSpeed } = processRecords(records, scale, options);
+
+      if (options.constantPace) {
+        const laps = getAtPath(activity, FIT_LAP_PATH);
+        for (const s of [...(sessions || []), ...(laps || [])]) {
+          if (avgCadence !== undefined) {
+            s.avg_cadence = avgCadence;
+            s.max_cadence = avgCadence;
+          }
+          if (Number.isFinite(avgSpeed)) {
+            s.avg_speed = avgSpeed;
+            s.max_speed = avgSpeed;
+            s.enhanced_avg_speed = avgSpeed;
+            s.enhanced_max_speed = avgSpeed;
+          }
+        }
+      }
+    }
+
+    if (options.slope && options.slope !== 0) {
+      const ascent = (newDistanceMeters * options.slope) / 100;
+      const targetSummaries = [...(sessions || []), ...(laps || [])];
+      for (const s of targetSummaries) {
+        if (s) {
+          s.total_ascent = ascent;
+          s.total_descent = 0;
+        }
+      }
+    } else {
+      const targetSummaries = [...(sessions || []), ...(laps || [])];
+      for (const s of targetSummaries) {
+        if (s) {
+          if (Number.isFinite(Number(s.total_ascent))) s.total_ascent *= scale;
+          if (Number.isFinite(Number(s.total_descent))) s.total_descent *= scale;
         }
       }
     }
@@ -384,7 +516,32 @@ export function applyDistanceScaling(activity, newDistanceKm) {
   }
 
   const records = findRecordsContainer(activity);
-  scaleRecordDistances(records, scale);
+  const { avgCadence, avgSpeed } = processRecords(records, scale, options);
+
+  if (options.constantPace) {
+    const summary = activity.summaryDTO || activity;
+    if (avgCadence !== undefined) {
+      summary.averageRunningCadenceInStepsPerMinute = avgCadence;
+      summary.maxRunningCadenceInStepsPerMinute = avgCadence;
+      summary.avg_cadence = avgCadence;
+      summary.max_cadence = avgCadence;
+    }
+    if (Number.isFinite(avgSpeed)) {
+      summary.averageSpeed = avgSpeed;
+      summary.maxSpeed = avgSpeed;
+      summary.enhanced_avg_speed = avgSpeed;
+      summary.enhanced_max_speed = avgSpeed;
+    }
+  }
+
+  if (options.slope && options.slope !== 0) {
+    const ascent = (newDistanceMeters * options.slope) / 100;
+    const summary = activity.summaryDTO || activity;
+    summary.total_ascent = ascent;
+    summary.totalAscent = ascent;
+    summary.total_descent = 0;
+    summary.totalDescent = 0;
+  }
 
   return {
     originalDistanceMeters,

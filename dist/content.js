@@ -12,7 +12,7 @@
 
   const banner = document.createElement("div");
   banner.id = BANNER_ID;
-  banner.setAttribute("role", "status");
+  banner.setAttribute("role", "alert");
   banner.innerHTML = `
     <div class="wpdm-hint-body">
       <span class="wpdm-hint-icon">🏃</span>
@@ -25,6 +25,7 @@
           <a href="https://fitfiletools.com/convert" target="_blank" rel="noopener noreferrer">fitfiletools.com/convert</a>,
           then drag the JSON file into the extension.
         </p>
+        <p><strong>Privacy:</strong> The converter is a third-party service. Uploading your FIT file shares your activity data, which may include health information, with that service.</p>
       </div>
       <button class="wpdm-hint-close" aria-label="Dismiss">&times;</button>
     </div>
