@@ -1,83 +1,83 @@
-# walking-pad-distance-modifier
+<p align="center">
+  <img src="assets/logo.svg" width="112" height="112" alt="" />
+</p>
 
-Chrome extension (Manifest V3) to load Garmin-style walking activity JSON files (including FIT converted to JSON), inspect key activity fields, modify distance values, and export an updated file for Strava import.
+<h1 align="center">Walking Pad Distance Modifier</h1>
 
-## Features
+<p align="center">
+  Adjust an indoor walking activity's distance and prepare it for Strava.
+  <br />
+  A local Chrome extension for Garmin-style activity data.
+</p>
 
-- Chrome extension (client-side, no backend)
-- **Garmin activity page hint** — when you open any activity page on Garmin Connect (`connect.garmin.com/app/activity/*`), a dismissible banner automatically appears with step-by-step instructions to download the activity and export it to Strava using this extension
-- Drag-and-drop and file picker support for `.json`
-- Garmin-style JSON detection with clear validation errors for unsupported formats
-- Activity summary display when available:
-  - activity name / sport
-  - start time
-  - duration
-  - total distance
-  - average heart rate
-  - max heart rate
-- Distance modification via a target value in kilometers
-- Proportional distance recalculation for all distance fields (session, laps, records)
-- Export the modified activity in four formats, selectable via a dropdown:
-  - **JSON** — original format with distances patched in-place
-  - **TCX** — Garmin Training Center XML; recommended for Strava with heart-rate data
-  - **GPX** — GPS Exchange Format with heart-rate extensions; for indoor activities coordinates default to 0,0
-  - **FIT** — Garmin FIT binary; includes file_id, records, laps, session, and activity messages
-- Reset button to clear current state
+<p align="center">
+  <a href="#get-started">Get started</a> ·
+  <a href="#export-formats">Export formats</a> ·
+  <a href="#privacy">Privacy</a> ·
+  <a href="#development">Development</a>
+</p>
 
-## Project structure
+## What it does
 
-- `/manifest.json`
-- `/popup.html`
-- `/popup.css`
-- `/popup.js`
-- `/content.js` — content script injected on Garmin Connect activity pages to show a hint banner
-- `/content.css` — styles for the hint banner
-- `/lib/json-distance-modifier.js` — Garmin JSON detection, summary extraction, distance scaling
-- `/lib/activity-normalizer.js` — normalizes both JSON formats into a common intermediate form
-- `/lib/tcx-exporter.js` — converts normalized activity to TCX XML
-- `/lib/gpx-exporter.js` — converts normalized activity to GPX XML with heart-rate extensions
-- `/lib/fit-exporter.js` — encodes normalized activity to FIT binary (file_id + records + laps + session + activity)
-- `/assets/icon16.png`
-- `/assets/icon48.png`
-- `/assets/icon128.png`
+Walking pads and wearable devices do not always agree on distance. This extension lets you load a Garmin-style JSON activity, enter a target distance in kilometers, and export the adjusted activity.
 
-## Quick start
+- **Inspect** the activity's distance, duration, start time, and heart rate when available.
+- **Adjust** distance fields in supported sessions, laps, and records. Options are available for constant pace and cadence and for slope.
+- **Export** as JSON, TCX, GPX, or FIT; open Strava's upload page from the extension.
+- **Keep processing local**: the extension has no backend. See [Privacy](#privacy) before using a third-party FIT converter.
 
-1. Open `chrome://extensions`.
-2. Enable **Developer mode**.
-3. Click **Load unpacked**.
-4. Select the project root folder (for example: `/path/to/walking-pad-distance-modifier`).
-5. Open the extension popup.
-6. Load a Garmin-style `.json` file (drag-and-drop or **Choose JSON File**).
-7. Enter a new distance in km and click **Apply Distance**.
-8. Choose an export format (**JSON**, **TCX**, **GPX**, or **FIT**), then click **Export Modified File**.
+## Get started
 
-## Build and packaging
+### 1. Install the extension
 
-- `npm ci` installs dependencies from `package-lock.json`.
-- `npm run build` creates a production-ready unpacked extension in `/dist`.
+1. Download or clone this repository.
+2. Open `chrome://extensions` in Chrome and enable **Developer mode**.
+3. Select **Load unpacked** and choose the repository root (or the built `dist/` folder).
+4. Open **Walking Pad Distance Modifier** from the extensions menu.
 
-### Build contract (CI)
+### 2. Prepare your activity
 
-- `/dist/manifest.json` must exist at the root of the built extension output.
-- The ZIP package for distribution must contain the contents of `/dist` at archive root (not a parent `dist/` folder).
-- The current build script uses Unix shell commands and is intended for CI/Linux environments.
+The extension accepts a **Garmin-style `.json` file**, not a `.fit` file directly. If you already have supported JSON, skip to the next step.
 
-## Supported JSON shapes (examples)
+To obtain JSON from a Garmin Connect activity:
 
-The extension supports Garmin-like activity objects that include fields such as:
+1. Open the activity in Garmin Connect and choose **⋮ → Export Original** to download the FIT file.
+2. Convert the FIT file to JSON with a compatible converter, such as [fitfiletools.com/convert](https://fitfiletools.com/convert).
+3. Save the resulting JSON file.
+
+> **Privacy:** fitfiletools.com is a third-party service. Uploading your FIT file shares the activity data in it, which may include health information, with that service. Use it only if you trust the service.
+
+The extension also displays a dismissible guide on matching Garmin Connect activity pages.
+
+### 3. Adjust and export
+
+1. Drop the JSON file into the popup or select **Choose JSON File**.
+2. Enter the new distance in kilometers. Optionally select **Constant pace & cadence** or enter a **Slope (%)**.
+3. Select **Apply Distance**, choose a format, and select **Export Modified File**.
+4. For Strava, use **Open Strava Upload** and select the exported activity file.
+
+The original file is not overwritten; the downloaded file has a `-modified` suffix.
+
+## Export formats
+
+| Format | Best used for | Notes |
+| --- | --- | --- |
+| **JSON** | Keeping or reprocessing the adjusted source | Retains the input JSON structure; not a Strava activity upload format. |
+| **TCX** | Strava import with timing and heart rate | Includes laps and available trackpoint data. |
+| **GPX** | Sharing timestamped trackpoints with heart-rate extensions | Uses placeholder `0,0` coordinates; it does not carry the adjusted distance as a track. |
+| **FIT** | Binary activity export | Contains session, lap, and record messages. |
+
+Import behavior depends on the source data and the destination service. Check the result after upload.
+
+## Supported input
+
+Garmin-style JSON uses distances in **meters**, for example:
 
 ```json
 {
   "activityName": "Treadmill Walk",
-  "activityTypeDTO": { "typeKey": "walking" },
   "startTimeLocal": "2026-01-01 06:30:00",
-  "summaryDTO": {
-    "duration": 3600,
-    "distance": 5000,
-    "averageHR": 120,
-    "maxHR": 148
-  },
+  "summaryDTO": { "duration": 3600, "distance": 5000, "averageHR": 120 },
   "activityDetailMetrics": [
     { "directSpeed": 1.4, "distance": 100 },
     { "directSpeed": 1.5, "distance": 200 }
@@ -85,77 +85,54 @@ The extension supports Garmin-like activity objects that include fields such as:
 }
 ```
 
-Distance values are expected in meters. Indoor walking JSON may not contain GPS coordinates, and that is supported.
-
-It also supports FIT files converted to JSON with a `messages` root structure:
+FIT converted to JSON can use a `messages` root:
 
 ```json
 {
   "messages": {
-    "session": [{ "start_time": "2026-04-14T20:00:31Z", "total_distance": 0.37, "sport": { "label": "Walking" } }],
+    "session": [{ "start_time": "2026-04-14T20:00:31Z", "total_distance": 0.37 }],
     "lap": [{ "total_distance": 0.12 }],
     "record": [{ "timestamp": "2026-04-14T20:00:32Z", "distance": 0.001 }]
   }
 }
 ```
 
-In this FIT-JSON shape, distance values are in kilometers for `messages.session[*].total_distance`, `messages.lap[*].total_distance`, and `messages.record[*].distance`.
+For FIT-JSON, distances default to **kilometers**. When `units.session.total_distance` is `"m"`, they are interpreted as meters. Common field names are supported, but not every Garmin export variant.
 
-### Privacy when converting FIT files
+## How adjustment works
 
-The FIT-to-JSON instructions use the third-party service fitfiletools.com. Uploading a FIT file shares the activity data in that file, which may include health information, with that service. Use it only if you trust the service; the extension itself processes the JSON locally.
+For a nonzero original distance, the extension calculates a ratio from the target distance and applies it to recognized distance fields. For FIT-JSON with a zero original distance, it assigns the target to sessions, divides it among laps, and distributes it across records.
 
-## How distance recalculation works
+Record fields are identified by name; normal scaling also affects numeric altitude and elevation fields. The optional constant-pace and slope settings modify additional data. Always review the exported activity before sharing it.
 
-1. Read original total distance from known summary fields.
-2. Compute a proportional scaling factor from the target distance.
-3. For Garmin-like JSON, scale recognized top-level distance fields and record-level numeric `*distance*` fields.
-4. For FIT-JSON, scale `messages.session[*].total_distance`, `messages.lap[*].total_distance`, and `messages.record[*].distance`.
-5. Keep all unrelated fields unchanged.
+### Limitations
 
-## Export formats for Strava
+- The extension does not read FIT files directly or regenerate GPS tracks.
+- GPX records use placeholder coordinates and do not represent a real route or distance.
+- Available timing, heart rate, and lap data depend on the input format and its fields.
+- Not all export variants or field names are supported; JSON formatting may change on export.
 
-After applying the desired distance, select an export format from the dropdown and click **Export Modified File**:
+## Privacy
 
-| Format | File | Notes |
-|--------|------|-------|
-| JSON | `.json` | Patched activity in original format; useful for re-processing. |
-| TCX | `.tcx` | Garmin Training Center XML. **Best for Strava** — preserves laps, heart-rate, and timing. |
-| GPX | `.gpx` | GPS Exchange Format with Garmin heart-rate extensions (`gpxtpx:hr`). Indoor activities export with lat=0, lon=0 (no GPS map in Strava). |
-| FIT | `.fit` | Garmin FIT binary. Contains `file_id`, per-second `record` messages, `lap`, `session`, and `activity` messages with correct CRC. |
+The extension processes loaded JSON in the browser without an extension backend. The optional Garmin Connect banner links to a third-party converter; using that service means sharing your FIT file with it. Uploading an export to Strava likewise shares it with Strava.
 
-## Current limitations
+## Development
 
-- Supports common Garmin-style field names, not every possible export variant.
-- Record-level scaling is key-name based (`distance` substring) and numeric-only.
-- GPX exports for indoor activities use lat=0, lon=0 placeholder coordinates (no real GPS).
-- Does not infer or regenerate GPS tracks.
-- Keeps JSON semantically intact, but formatting may differ from the original after export.
+Requirements: Node.js 20 or later and a Unix-like shell for the build script.
 
-## Manual test checklist (Chrome unpacked extension)
+```sh
+npm ci
+npm test
+npm run build
+```
 
-### Getting a FIT-JSON input file from Garmin Connect
+The build copies the unpacked extension to `dist/`. CI runs the tests and packages the **contents** of `dist/` at the ZIP root, where `manifest.json` must be present.
 
-1. Open [Garmin Connect](https://connect.garmin.com) and navigate to the activity you want to modify.
-2. Export the activity as a `.fit` file (Activity → ⋮ → Export Original).
-3. If you are comfortable sharing the activity file with a third-party service, go to **[https://fitfiletools.com/convert](https://fitfiletools.com/convert)**.
-4. Drop or upload the `.fit` file and click **Convert** to download the `.json` file.
-5. Use that `.json` file as the input for the extension.
-
-### Loading and modifying the activity
-
-6. Open `chrome://extensions`.
-7. Enable **Developer mode**.
-8. Click **Load unpacked**.
-9. Select the project root folder (for example: `/path/to/walking-pad-distance-modifier`).
-10. Open the extension popup.
-11. Load the `.json` file obtained above via drag-drop or **Choose JSON File**.
-12. Enter a new distance in km and click **Apply Distance**.
-13. Select each export format and click **Export Modified File**.
-14. Verify exported filenames end with `-modified.<ext>` where `<ext>` matches the selected format.
-
-### Screeshots
-
-<img width="732" height="416" alt="image" src="https://github.com/user-attachments/assets/32dc2e5e-e4ef-490c-ac9c-da5646c3c744" />
-<img width="770" height="1284" alt="image" src="https://github.com/user-attachments/assets/f3767a20-9ec6-4bf7-a2e9-ae1aea08095a" />
-
+| Path | Purpose |
+| --- | --- |
+| `popup.*` | Extension interface |
+| `content.*` | Garmin Connect guide banner |
+| `lib/` | Distance adjustment, normalization, and export |
+| `assets/` | Vector logo and Chrome icons |
+| `test/` | Node.js regression tests |
+| `.github/workflows/` | Build and test automation |

@@ -14,8 +14,19 @@ body {
   padding: 16px;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.brand img {
+  flex-shrink: 0;
+}
+
 h1 {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 16px;
 }
 
