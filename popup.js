@@ -246,6 +246,17 @@ function init() {
   });
   ui.resetBtn.addEventListener("click", resetState);
 
+  const invalidateAppliedState = () => {
+    if (!state.parsedActivity) {
+      return;
+    }
+    if (!ui.exportBtn.disabled) {
+      ui.exportBtn.disabled = true;
+      ui.stravaBtn.disabled = true;
+      setStatus("Parameters changed. Click Apply Distance to update.", "");
+    }
+  };
+
   ui.targetDistance.addEventListener("input", () => {
     const km = Number(ui.targetDistance.value);
     if (Number.isFinite(km) && km > 0) {
@@ -253,7 +264,20 @@ function init() {
     } else {
       ui.newDistance.textContent = "—";
     }
+    invalidateAppliedState();
   });
+
+  ui.constantPace.addEventListener("change", invalidateAppliedState);
+  ui.slope.addEventListener("input", invalidateAppliedState);
+
+  const applyOnEnter = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      applyDistance();
+    }
+  };
+  ui.targetDistance.addEventListener("keydown", applyOnEnter);
+  ui.slope.addEventListener("keydown", applyOnEnter);
 }
 
 init();
